@@ -1,0 +1,18 @@
+{
+  "name": "decentralized-event-ticketing-dapp",
+  "version": "1.0.0",
+  "description": "A DApp for event ticketing using NFTs to prevent scalping and counterfeiting",
+  "scripts": {
+    "compile": "truffle compile",
+    "migrate": "truffle migrate",
+    "test": "truffle test",
+    "copy-abi": "node scripts/copyAbi.js",
+    "deploy": "truffle migrate --reset && npm run copy-abi",
+    "client": "cd client && npm start",
+    "client-install": "cd client && npm install"
+  },
+  "dependencies": {
+    "@truffle/hdwallet-provider": "^1.7.0",
+    "dotenv": "^16.5.0"
+  }
+}
