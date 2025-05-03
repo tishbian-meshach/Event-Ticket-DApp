@@ -2,6 +2,18 @@ import React, { useState, useContext } from 'react';
 import { AppContext } from '../context/AppContext';
 import { createEvent } from '../utils/contractUtils';
 import { uploadFileToIPFS, uploadMetadataToIPFS, createEventMetadata } from '../utils/ipfsUtils';
+import {
+  Calendar,
+  Clock,
+  DollarSign,
+  Users,
+  Lock,
+  Image,
+  FileText,
+  AlertTriangle,
+  CheckCircle,
+  PlusCircle
+} from 'lucide-react';
 
 const EventForm = ({ setActiveTab }) => {
   const { isOrganizer } = useContext(AppContext);
@@ -29,45 +41,45 @@ const EventForm = ({ setActiveTab }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Reset messages
     setMessage('');
     setError('');
     setIsLoading(true);
-    
+
     try {
       // Validate inputs
       if (!name || !description || !date || !ticketPrice || !totalTickets || !maxTicketsPerBuyer || !file) {
         throw new Error('All fields are required');
       }
-      
+
       // Validate date is in the future
       const eventDate = new Date(date);
       if (eventDate <= new Date()) {
         throw new Error('Event date must be in the future');
       }
-      
+
       // Validate numeric inputs
       if (isNaN(parseFloat(ticketPrice)) || parseFloat(ticketPrice) < 0) {
         throw new Error('Ticket price must be a valid number');
       }
-      
+
       if (isNaN(parseInt(totalTickets)) || parseInt(totalTickets) <= 0) {
         throw new Error('Total tickets must be a positive number');
       }
-      
+
       if (isNaN(parseInt(maxTicketsPerBuyer)) || parseInt(maxTicketsPerBuyer) <= 0) {
         throw new Error('Max tickets per buyer must be a positive number');
       }
-      
+
       if (parseInt(maxTicketsPerBuyer) > parseInt(totalTickets)) {
         throw new Error('Max tickets per buyer cannot exceed total tickets');
       }
-      
+
       // Upload image to IPFS
       const imageResult = await uploadFileToIPFS(file);
       console.log('Image uploaded to IPFS:', imageResult);
-      
+
       // Create and upload metadata to IPFS
       const metadata = createEventMetadata(
         name,
@@ -77,10 +89,10 @@ const EventForm = ({ setActiveTab }) => {
         totalTickets,
         imageResult.path
       );
-      
+
       const metadataResult = await uploadMetadataToIPFS(metadata);
       console.log('Metadata uploaded to IPFS:', metadataResult);
-      
+
       // Create event on the blockchain
       const txHash = await createEvent(
         name,
@@ -92,9 +104,9 @@ const EventForm = ({ setActiveTab }) => {
         parseInt(maxTicketsPerBuyer),
         transferLocked
       );
-      
+
       setMessage(`Event created successfully! Transaction hash: ${txHash}`);
-      
+
       // Reset form
       setName('');
       setDescription('');
@@ -105,10 +117,10 @@ const EventForm = ({ setActiveTab }) => {
       setTransferLocked(true);
       setFile(null);
       setPreviewUrl('');
-      
+
       // Reset file input
       document.getElementById('eventImage').value = '';
-      
+
       // Redirect to events list after 3 seconds
       setTimeout(() => {
         setActiveTab('events');
@@ -124,22 +136,43 @@ const EventForm = ({ setActiveTab }) => {
   if (!isOrganizer) {
     return (
       <div className="form-container">
-        <h2 className="form-title">Create Event</h2>
-        <p className="error-message">Only registered organizers can create events.</p>
+        <div className="form-header-centered">
+          <h2 className="form-title-centered">Create Event</h2>
+        </div>
+        <div className="error-message">
+          <AlertTriangle size={20} />
+          <span>Only registered organizers can create events.</span>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="form-container">
-      <h2 className="form-title">Create New Event</h2>
-      
-      {message && <p className="success-message">{message}</p>}
-      {error && <p className="error-message">{error}</p>}
-      
-      <form onSubmit={handleSubmit}>
+      <div className="form-header-centered">
+        <h2 className="form-title-centered">Create New Event</h2>
+      </div>
+
+      {message && (
+        <div className="success-message">
+          <CheckCircle size={18} />
+          <span>{message}</span>
+        </div>
+      )}
+
+      {error && (
+        <div className="error-message">
+          <AlertTriangle size={18} />
+          <span>{error}</span>
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="registration-form">
         <div className="form-group">
-          <label htmlFor="name">Event Name</label>
+          <label htmlFor="name">
+            <Calendar size={16} className="form-icon" />
+            <span>Event Name</span>
+          </label>
           <input
             type="text"
             id="name"
@@ -149,9 +182,12 @@ const EventForm = ({ setActiveTab }) => {
             required
           />
         </div>
-        
+
         <div className="form-group">
-          <label htmlFor="description">Description</label>
+          <label htmlFor="description">
+            <FileText size={16} className="form-icon" />
+            <span>Description</span>
+          </label>
           <textarea
             id="description"
             value={description}
@@ -161,9 +197,12 @@ const EventForm = ({ setActiveTab }) => {
             required
           />
         </div>
-        
+
         <div className="form-group">
-          <label htmlFor="date">Event Date</label>
+          <label htmlFor="date">
+            <Clock size={16} className="form-icon" />
+            <span>Event Date</span>
+          </label>
           <input
             type="datetime-local"
             id="date"
@@ -172,9 +211,12 @@ const EventForm = ({ setActiveTab }) => {
             required
           />
         </div>
-        
+
         <div className="form-group">
-          <label htmlFor="ticketPrice">Ticket Price (ETH)</label>
+          <label htmlFor="ticketPrice">
+            <DollarSign size={16} className="form-icon" />
+            <span>Ticket Price (ETH)</span>
+          </label>
           <input
             type="number"
             id="ticketPrice"
@@ -186,9 +228,12 @@ const EventForm = ({ setActiveTab }) => {
             required
           />
         </div>
-        
+
         <div className="form-group">
-          <label htmlFor="totalTickets">Total Tickets</label>
+          <label htmlFor="totalTickets">
+            <Users size={16} className="form-icon" />
+            <span>Total Tickets</span>
+          </label>
           <input
             type="number"
             id="totalTickets"
@@ -199,9 +244,12 @@ const EventForm = ({ setActiveTab }) => {
             required
           />
         </div>
-        
+
         <div className="form-group">
-          <label htmlFor="maxTicketsPerBuyer">Max Tickets Per Buyer</label>
+          <label htmlFor="maxTicketsPerBuyer">
+            <Users size={16} className="form-icon" />
+            <span>Max Tickets Per Buyer</span>
+          </label>
           <input
             type="number"
             id="maxTicketsPerBuyer"
@@ -213,9 +261,12 @@ const EventForm = ({ setActiveTab }) => {
           />
           <small>Anti-scalping: Limit how many tickets one address can buy</small>
         </div>
-        
+
         <div className="form-group">
-          <label htmlFor="transferLocked">Transfer Restrictions</label>
+          <label htmlFor="transferLocked">
+            <Lock size={16} className="form-icon" />
+            <span>Transfer Restrictions</span>
+          </label>
           <div className="checkbox-container">
             <input
               type="checkbox"
@@ -229,9 +280,12 @@ const EventForm = ({ setActiveTab }) => {
           </div>
           <small>Anti-scalping: Prevent ticket reselling</small>
         </div>
-        
+
         <div className="form-group">
-          <label htmlFor="eventImage">Event Image</label>
+          <label htmlFor="eventImage">
+            <Image size={16} className="form-icon" />
+            <span>Event Image</span>
+          </label>
           <input
             type="file"
             id="eventImage"
@@ -240,29 +294,38 @@ const EventForm = ({ setActiveTab }) => {
             required
           />
           <small>Upload a promotional image for your event</small>
-          
+
           {previewUrl && (
             <div className="image-preview">
               <img
                 src={previewUrl}
                 alt="Preview"
                 style={{
-                  maxWidth: '100%',
-                  maxHeight: '200px',
-                  marginTop: '10px',
-                  borderRadius: 'var(--border-radius)'
+                  width: '100%',
+                  height: 'auto',
+                  borderRadius: 'var(--border-radius-md)'
                 }}
               />
             </div>
           )}
         </div>
-        
+
         <button
           type="submit"
           className="submit-button"
           disabled={isLoading}
         >
-          {isLoading ? 'Creating...' : 'Create Event'}
+          {isLoading ? (
+            <>
+              <Calendar size={18} className="spin-icon" />
+              <span>Creating...</span>
+            </>
+          ) : (
+            <>
+              <PlusCircle size={18} />
+              <span>Create Event</span>
+            </>
+          )}
         </button>
       </form>
     </div>

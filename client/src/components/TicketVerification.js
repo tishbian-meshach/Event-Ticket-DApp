@@ -1,6 +1,7 @@
 import React, { useState, useContext } from 'react';
 import { AppContext } from '../context/AppContext';
 import { getTicketDetails, getEventDetails, useTicket as markTicketAsUsed } from '../utils/contractUtils';
+import { Search, CheckCircle, AlertTriangle, Calendar, Clock, User, DollarSign, Ticket } from 'lucide-react';
 
 const TicketVerification = () => {
   const { isOrganizer, isOwner } = useContext(AppContext);
@@ -82,83 +83,130 @@ const TicketVerification = () => {
   if (!isOrganizer && !isOwner) {
     return (
       <div className="form-container">
-        <h2 className="form-title">Ticket Verification</h2>
-        <p className="error-message">Only event organizers and the contract owner can verify tickets.</p>
+        <h2 className="verification-title">Ticket Verification</h2>
+        <div className="error-message">
+          <AlertTriangle size={20} />
+          <span>Only event organizers and the contract owner can verify tickets.</span>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="verification-container">
-      <h2 className="section-title">Ticket Verification</h2>
+      <h2 className="verification-title">Ticket Verification</h2>
+      <p className="verification-subtitle">Scan or enter ticket ID to verify authenticity and attendance</p>
 
       <form onSubmit={handleVerify} className="verification-form">
-        <div className="form-group">
-          <label htmlFor="tokenId">Ticket ID</label>
-          <input
-            type="number"
-            id="tokenId"
-            value={tokenId}
-            onChange={(e) => setTokenId(e.target.value)}
-            placeholder="Enter ticket ID"
-            required
-          />
-        </div>
+        <div className="verification-input-row">
+          <div className="form-group verification-input">
+            <label htmlFor="tokenId">Ticket ID</label>
+            <div className="input-with-icon">
+              <input
+                type="number"
+                id="tokenId"
+                value={tokenId}
+                onChange={(e) => setTokenId(e.target.value)}
+                placeholder="Enter ticket ID"
+                required
+              />
+              <Ticket size={18} className="input-icon" />
+            </div>
+          </div>
 
-        <button
-          type="submit"
-          className="verify-button"
-          disabled={isLoading}
-        >
-          {isLoading ? 'Verifying...' : 'Verify Ticket'}
-        </button>
+          <button
+            type="submit"
+            className="verify-button"
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <>
+                <span>Verifying...</span>
+                <Search size={18} className="spin-icon" />
+              </>
+            ) : (
+              <>
+                <span>Verify Ticket</span>
+                <Search size={18} />
+              </>
+            )}
+          </button>
+        </div>
       </form>
 
-      {error && <p className="error-message">{error}</p>}
-      {message && <p className="success-message">{message}</p>}
+      {error && <div className="error-message"><AlertTriangle size={18} /><span>{error}</span></div>}
+      {message && <div className="success-message"><CheckCircle size={18} /><span>{message}</span></div>}
 
       {ticketDetails && eventDetails && (
         <div className="verification-result">
-          <h3 className="result-title">Ticket Information</h3>
+          <h3 className="verification-result-title">Ticket Information</h3>
 
           <div className="result-card">
             <div className="result-status">
               <div className={`status-badge ${ticketDetails.isUsed ? 'used' : 'valid'}`}>
-                {ticketDetails.isUsed ? 'USED' : 'VALID'}
+                {ticketDetails.isUsed ? (
+                  <>
+                    <AlertTriangle size={20} />
+                    <span>USED</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle size={20} />
+                    <span>VALID</span>
+                  </>
+                )}
               </div>
             </div>
 
             <div className="result-details">
-              <div className="detail-row">
-                <span className="detail-label">Event:</span>
-                <span className="detail-value">{eventDetails.name}</span>
+              <div className="result-detail-row">
+                <div className="result-detail-label">
+                  <Calendar size={16} />
+                  <span>Event</span>
+                </div>
+                <div className="result-detail-value">{eventDetails.name}</div>
               </div>
 
-              <div className="detail-row">
-                <span className="detail-label">Event Date:</span>
-                <span className="detail-value">{formatDate(eventDetails.date)}</span>
+              <div className="result-detail-row">
+                <div className="result-detail-label">
+                  <Clock size={16} />
+                  <span>Event Date</span>
+                </div>
+                <div className="result-detail-value">{formatDate(eventDetails.date)}</div>
               </div>
 
-              <div className="detail-row">
-                <span className="detail-label">Ticket #:</span>
-                <span className="detail-value">{ticketDetails.ticketNumber}</span>
+              <div className="result-detail-row">
+                <div className="result-detail-label">
+                  <Ticket size={16} />
+                  <span>Ticket #</span>
+                </div>
+                <div className="result-detail-value">{ticketDetails.ticketNumber}</div>
               </div>
 
-              <div className="detail-row">
-                <span className="detail-label">Original Buyer:</span>
-                <span className="detail-value">
+              <div className="result-detail-row">
+                <div className="result-detail-label">
+                  <User size={16} />
+                  <span>Original Buyer</span>
+                </div>
+                <div className="result-detail-value">
                   {ticketDetails.originalBuyer.substring(0, 6)}...{ticketDetails.originalBuyer.substring(ticketDetails.originalBuyer.length - 4)}
-                </span>
+                </div>
               </div>
 
-              <div className="detail-row">
-                <span className="detail-label">Purchase Date:</span>
-                <span className="detail-value">{formatDate(ticketDetails.purchaseDate)}</span>
+              <div className="result-detail-row">
+                <div className="result-detail-label">
+                  <Calendar size={16} />
+                  <span>Purchase Date</span>
+                </div>
+                <div className="result-detail-value">{formatDate(ticketDetails.purchaseDate)}</div>
               </div>
 
-              <div className="detail-row">
-                <span className="detail-label">Purchase Price:</span>
-                <span className="detail-value">{ticketDetails.purchasePrice} ETH</span>
+              <div className="result-detail-row">
+                <div className="result-detail-label">
+                  <DollarSign size={16} />
+                  <span>Purchase Price</span>
+                </div>
+                <div className="result-detail-value">{ticketDetails.purchasePrice} ETH</div>
               </div>
             </div>
 
@@ -170,6 +218,7 @@ const TicketVerification = () => {
                   disabled={isVerifying}
                 >
                   {isVerifying ? 'Processing...' : 'Mark as Used'}
+                  <CheckCircle size={18} />
                 </button>
               </div>
             )}

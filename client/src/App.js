@@ -2,6 +2,18 @@ import React, { useState, useContext } from 'react';
 import './App.css';
 import { AppContext } from './context/AppContext';
 import { switchToSepoliaNetwork } from './utils/contractUtils';
+
+// Lucide Icons
+import {
+  Ticket,
+  PlusCircle,
+  Users,
+  CheckCircle,
+  Calendar,
+  TicketCheck
+} from 'lucide-react';
+
+// Components
 import WalletConnection from './components/WalletConnection';
 import OrganizerRegistration from './components/OrganizerRegistration';
 import EventForm from './components/EventForm';
@@ -11,10 +23,10 @@ import MyTickets from './components/MyTickets';
 import TicketVerification from './components/TicketVerification';
 import HomePage from './components/HomePage';
 
+
 function App() {
   const {
     account,
-    isOwner,
     isOrganizer,
     isLoading,
     error,
@@ -103,54 +115,59 @@ function App() {
     <div className="App">
       <header className="App-header">
         <div className="logo" onClick={() => setActiveTab('home')}>
-          Event Ticket DApp
+          <TicketCheck size={24} />
+          <span>Event Ticket DApp</span>
         </div>
-        
+
         {account && (
           <nav className="nav-menu">
-            <button 
+            <button
               className={`nav-item ${activeTab === 'events' ? 'active' : ''}`}
               onClick={() => setActiveTab('events')}
             >
-              Events
+              <Calendar size={18} />
+              <span>Events</span>
             </button>
-            
-            <button 
+
+            <button
               className={`nav-item ${activeTab === 'my-tickets' ? 'active' : ''}`}
               onClick={() => setActiveTab('my-tickets')}
             >
-              My Tickets
+              <Ticket size={18} />
+              <span>My Tickets</span>
             </button>
-            
+
             {isOrganizer && (
               <>
-                <button 
+                <button
                   className={`nav-item ${activeTab === 'create-event' ? 'active' : ''}`}
                   onClick={() => setActiveTab('create-event')}
                 >
-                  Create Event
+                  <PlusCircle size={18} />
+                  <span>Create Event</span>
                 </button>
-                
-                <button 
+
+                <button
                   className={`nav-item ${activeTab === 'verify-ticket' ? 'active' : ''}`}
                   onClick={() => setActiveTab('verify-ticket')}
                 >
-                  Verify Tickets
+                  <CheckCircle size={18} />
+                  <span>Verify Tickets</span>
                 </button>
               </>
             )}
-            
-            {isOwner && (
-              <button 
-                className={`nav-item ${activeTab === 'register-organizer' ? 'active' : ''}`}
-                onClick={() => setActiveTab('register-organizer')}
-              >
-                Register Organizer
-              </button>
-            )}
+
+            {/* Show Organizer Registration tab to all users */}
+            <button
+              className={`nav-item ${activeTab === 'register-organizer' ? 'active' : ''}`}
+              onClick={() => setActiveTab('register-organizer')}
+            >
+              <Users size={18} />
+              <span>{isOrganizer ? "Organizer Profile" : "Register Organizer"}</span>
+            </button>
           </nav>
         )}
-        
+
         <WalletConnection />
       </header>
 
@@ -168,7 +185,7 @@ function App() {
           </div>
         )}
       </main>
-      
+
       <footer className="App-footer">
         <p>&copy; {new Date().getFullYear()} Event Ticket DApp. All rights reserved.</p>
       </footer>

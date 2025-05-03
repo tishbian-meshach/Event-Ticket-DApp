@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { AppContext } from '../context/AppContext';
 import { switchToSepoliaNetwork } from '../utils/contractUtils';
+import { Wallet, LogOut, AlertTriangle, RefreshCw } from 'lucide-react';
 
 const WalletConnection = () => {
   const { account, handleAccountChange } = useContext(AppContext);
@@ -12,14 +13,14 @@ const WalletConnection = () => {
     if (window.ethereum) {
       // Listen for account changes
       window.ethereum.on('accountsChanged', handleAccountsChanged);
-      
+
       // Listen for chain changes
       window.ethereum.on('chainChanged', handleChainChanged);
-      
+
       // Check if already connected
       checkConnection();
     }
-    
+
     return () => {
       // Clean up listeners
       if (window.ethereum) {
@@ -34,17 +35,17 @@ const WalletConnection = () => {
     try {
       // Get accounts
       const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-      
+
       // Get network
       const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-      
+
       // Check if connected to Sepolia (chainId: 0xaa36a7)
       const isSepolia = chainId === '0xaa36a7';
       setIsCorrectNetwork(isSepolia);
-      
+
       // Set network name
       setNetwork(getNetworkName(chainId));
-      
+
       // Handle accounts
       handleAccountsChanged(accounts);
     } catch (error) {
@@ -67,10 +68,10 @@ const WalletConnection = () => {
     // Check if connected to Sepolia (chainId: 0xaa36a7)
     const isSepolia = chainId === '0xaa36a7';
     setIsCorrectNetwork(isSepolia);
-    
+
     // Set network name
     setNetwork(getNetworkName(chainId));
-    
+
     // Reload the page to refresh the connection
     window.location.reload();
   };
@@ -95,17 +96,17 @@ const WalletConnection = () => {
       try {
         // Request account access
         const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-        
+
         // Get network
         const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-        
+
         // Check if connected to Sepolia (chainId: 0xaa36a7)
         const isSepolia = chainId === '0xaa36a7';
         setIsCorrectNetwork(isSepolia);
-        
+
         // Set network name
         setNetwork(getNetworkName(chainId));
-        
+
         // Handle accounts
         handleAccountsChanged(accounts);
       } catch (error) {
@@ -139,27 +140,32 @@ const WalletConnection = () => {
     <div className="wallet-info">
       {!account ? (
         <button className="connect-button" onClick={connectWallet}>
-          Connect Wallet
+          <Wallet size={18} />
+          <span>Connect Wallet</span>
         </button>
       ) : (
         <>
           <div className="account-display">
+            <Wallet size={16} />
             <span>{formatAddress(account)}</span>
-            <span className="network-badge" style={{ 
+            <span className="network-badge" style={{
               backgroundColor: isCorrectNetwork ? 'var(--success)' : 'var(--warning)'
             }}>
-              {network}
+              {isCorrectNetwork ? null : <AlertTriangle size={14} />}
+              <span>{network}</span>
             </span>
           </div>
-          
+
           {!isCorrectNetwork && (
-            <button className="connect-button" onClick={handleSwitchNetwork}>
-              Switch to Sepolia
+            <button className="connect-button switch-network" onClick={handleSwitchNetwork}>
+              <RefreshCw size={16} />
+              <span>Switch to Sepolia</span>
             </button>
           )}
-          
-          <button className="connect-button" onClick={disconnectWallet}>
-            Disconnect
+
+          <button className="connect-button disconnect" onClick={disconnectWallet}>
+            <LogOut size={16} />
+            <span>Disconnect</span>
           </button>
         </>
       )}

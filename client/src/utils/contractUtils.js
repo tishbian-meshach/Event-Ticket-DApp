@@ -128,6 +128,129 @@ export const isOrganizerRegistered = async (address) => {
   }
 };
 
+// Function to register an organizer
+export const registerOrganizer = async (organizerAddress, details) => {
+  try {
+    const { contract, signer, provider } = await getContractInstance(true);
+
+    // Convert details object to JSON string if it's an object
+    const detailsString = typeof details === 'object' ? JSON.stringify(details) : details;
+
+    console.log('Registering organizer with address:', organizerAddress);
+    console.log('Organizer details (as string):', detailsString);
+    console.log('Transaction sender:', await signer.getAddress());
+
+    // Explicitly connect the contract to the signer to ensure the transaction is sent from the correct account
+    const connectedContract = contract.connect(signer);
+
+    // Get current gas price and increase it by 20%
+    const feeData = await provider.getFeeData();
+    const gasPrice = feeData.gasPrice;
+    const increasedGasPrice = gasPrice * 120n / 100n; // Increase by 20%
+
+    console.log('Current gas price:', gasPrice.toString());
+    console.log('Increased gas price:', increasedGasPrice.toString());
+
+    // Add gas limit and increased gas price to avoid replacement underpriced errors
+    const tx = await connectedContract.registerOrganizer(organizerAddress, detailsString, {
+      gasLimit: 500000, // Adjust this value as needed
+      gasPrice: increasedGasPrice // Use higher gas price
+    });
+
+    console.log('Transaction sent:', tx.hash);
+
+    // Wait for the transaction to be mined
+    const receipt = await tx.wait();
+    console.log('Transaction confirmed in block:', receipt.blockNumber);
+
+    return tx.hash;
+  } catch (error) {
+    console.error('Error registering organizer:', error);
+    // Provide more detailed error information
+    if (error.code === 'ACTION_REJECTED') {
+      throw new Error('Transaction was rejected by the user');
+    } else if (error.code === 'REPLACEMENT_UNDERPRICED') {
+      // If we get a replacement underpriced error, try again with an even higher gas price
+      console.log('Replacement transaction underpriced. Please try again with a higher gas price.');
+      throw new Error('Transaction failed: Gas price too low. Please try again or wait for pending transactions to complete.');
+    } else if (error.message && error.message.includes('account')) {
+      throw new Error('Account error: ' + error.message);
+    } else if (error.message && error.message.includes('replacement fee too low')) {
+      throw new Error('Transaction failed: Gas price too low. Please try again or wait for pending transactions to complete.');
+    } else {
+      throw error;
+    }
+  }
+};
+
+// Function to get organizer details
+export const getOrganizerDetails = async (address) => {
+  try {
+    const { contract } = await getContractInstance();
+    const detailsString = await contract.getOrganizerDetails(address);
+
+    // Parse the JSON string to get the organizer details
+    try {
+      const details = JSON.parse(detailsString);
+      return details;
+    } catch (parseError) {
+      console.error('Error parsing organizer details:', parseError);
+      return { name: detailsString };
+    }
+  } catch (error) {
+    console.error('Error getting organizer details:', error);
+    throw error;
+  }
+};
+
+// Function to get all registered organizers
+export const getAllOrganizers = async () => {
+  try {
+    // This is a simplified implementation since the contract doesn't have a direct way to get all organizers
+    // In a real implementation, you would need to track all registered organizers in the contract
+    // or use events to get this information
+
+    const { contract } = await getContractInstance();
+
+    // Get past events for OrganizerRegistered
+    const filter = contract.filters.OrganizerRegistered();
+    const events = await contract.queryFilter(filter);
+
+    // Process events to get organizer addresses and details
+    const organizers = await Promise.all(events.map(async (event) => {
+      const organizerAddress = event.args[0];
+      try {
+        const detailsString = await contract.getOrganizerDetails(organizerAddress);
+        let details = {};
+
+        try {
+          details = JSON.parse(detailsString);
+        } catch (parseError) {
+          console.error(`Error parsing details for organizer ${organizerAddress}:`, parseError);
+          details = { name: detailsString };
+        }
+
+        return {
+          address: organizerAddress,
+          ...details
+        };
+      } catch (error) {
+        console.error(`Error getting details for organizer ${organizerAddress}:`, error);
+        return {
+          address: organizerAddress,
+          name: 'Unknown',
+          registrationDate: 0
+        };
+      }
+    }));
+
+    return organizers;
+  } catch (error) {
+    console.error('Error getting all organizers:', error);
+    throw error;
+  }
+};
+
 // Function to create a new event
 export const createEvent = async (
   name,
